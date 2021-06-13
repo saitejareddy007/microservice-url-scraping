@@ -17,7 +17,12 @@ class WebScrapAPIs {
             }
             const cacheData = await DynamoInstance.getPreviousCacheWithUrl(url);
             if (!this.isCacheValid(cacheData) || forceReload) {
-                const responseData = await got(url);
+                let responseData;
+                try{
+                    responseData = await got(url);
+                } catch(err){
+                    responseData = err.response;
+                }
                 if(!responseData){
                     throw new Error(`Invalid Url`);
                 }
