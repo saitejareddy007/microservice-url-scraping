@@ -10,3 +10,4 @@ Web Scraping for Og Params using NodeJs, AWS Lambda, Dynamo DB
     2. And select microservice http endpoint from the drop down.
     3. And then select create new api, api type: HTTP API and then click on 'create function' button.
 5. After creating lambda function, you just need to upload the zip file that you have created in the 3rd step.
+6. I have added unit test cases for the api deployed in AWS. you can just run it with ```npm test``
