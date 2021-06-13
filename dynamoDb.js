@@ -1,39 +1,9 @@
 const AWS = require('aws-sdk');
 const ddb = new AWS.DynamoDB();
 const dynamo = new AWS.DynamoDB.DocumentClient();
+const {DB_CREATION_PARAMS} = require('./Constants');
 
-var params = {
-  AttributeDefinitions: [
-    {
-      AttributeName: 'id',
-      AttributeType: 'S'
-    },
-    {
-      AttributeName: 'result',
-      AttributeType: 'S'
-    }
-  ],
-  KeySchema: [
-    {
-      AttributeName: 'id',
-      KeyType: 'HASH'
-    },
-    {
-      AttributeName: 'result',
-      KeyType: 'RANGE'
-    }
-  ],
-  ProvisionedThroughput: {
-    ReadCapacityUnits: 1,
-    WriteCapacityUnits: 1
-  },
-  TableName: 'web-scrapping-cache',
-  StreamSpecification: {
-    StreamEnabled: false
-  }
-};
-
-ddb.createTable(params, function(err, data) {
+ddb.createTable(DB_CREATION_PARAMS, function(err, data) {
   if (err) {
     console.log("Error", err);
   } else {
@@ -45,24 +15,31 @@ let instance;
 
 class DynamoDB {
 
-	getFindQueryParamsWithUrl(url){
-    var params = {
-        TableName : "web-scrapping-cache",
-        FilterExpression: "id = :id",
-        ExpressionAttributeValues: {
-            ":id": url
-        }
-    };
-    return params;
-}
+	async getPreviousCacheWithUrl(url){
+        const queryParams = {
+            TableName : "web-scrapping-cache",
+            FilterExpression: "id = :id",
+            ExpressionAttributeValues: {
+                ":id": url
+            }
+        };
+        const cacheData = await dynamo.scan(queryParams).promise();
+        return cacheData;
+    }
 
-	getInsertQueryParamsForCache(data){
-    const params = {
-        TableName: "web-scrapping-cache",
-        Item:{...data}
-    };
-    return params;
-}
+	async insertCacheData(data){
+	    try{
+            const queryParams = {
+                TableName: "web-scrapping-cache",
+                Item:{...data}
+            };
+            await dynamo.put(queryParams).promise();
+            return true;
+        } catch (e) {
+	        console.log('Error', e);
+            return false;
+        }
+    }
 
 	static getInstance(){
 		if(!instance){
@@ -71,7 +48,7 @@ class DynamoDB {
 	}
 }
 
-module.exports = DynamoDB.getInstance;
+exports.getInstance = DynamoDB.getInstance;
 
 
 
